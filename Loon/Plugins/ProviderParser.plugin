@@ -1,5 +1,5 @@
 #!name=Provider Parser
-#!desc=订阅（远程节点）解析器：基于 Sub-Store 引擎拉取与转换订阅 再统一做排除 正则重命名 去旗帜 去地区 前后缀 排序 去重。全局参数在这里设置 单个订阅可在订阅的 argument 里覆盖。请在订阅管理界面选择本解析器。
+#!desc=订阅（远程节点）解析器：基于 Sub-Store 引擎拉取与转换订阅 再统一做排除 正则重命名 去旗帜 去地区 前后缀 排序 去重。插件页面的参数是全局默认值 每个订阅可在订阅设置的插件参数里单独修改。请在订阅管理界面选择本解析器。
 #!author=Vimcaw
 #!homepage=https://github.com/vimcaw/network-configuration
 #!tag=解析器,节点,订阅,Sub-Store
@@ -10,9 +10,12 @@
 #!type=parser
 
 [Argument]
-aliasPrefix = switch,false,tag=别名作为前缀,desc=把订阅别名加到节点名前面 单个订阅可用 prefix=自定义文本 覆盖
-aliasSuffix = switch,false,tag=别名作为后缀,desc=把订阅别名加到节点名后面 单个订阅可用 suffix=自定义文本 覆盖
-aliasSep = input," ",tag=别名分隔符,desc=别名与节点名之间的分隔符 默认一个空格
+name = input,"",tag=订阅名称,desc=别名前后缀使用的名称 如 机场 A。Loon 不会把订阅别名传给解析器 请在每个订阅的插件参数里单独填写
+aliasPrefix = switch,false,tag=名称作为前缀,desc=把订阅名称加到节点名前面
+aliasSuffix = switch,false,tag=名称作为后缀,desc=把订阅名称加到节点名后面
+aliasSep = input," ",tag=名称分隔符,desc=订阅名称与节点名之间的分隔符 默认一个空格
+prefix = input,"",tag=自定义前缀,desc=填写后直接作为节点名前缀 优先于 名称作为前缀
+suffix = input,"",tag=自定义后缀,desc=填写后直接作为节点名后缀 优先于 名称作为后缀
 noFlag = switch,false,tag=去除旗帜 Emoji,desc=去掉节点名中的国旗 Emoji
 noRegion = switch,false,tag=去除地区名,desc=去掉 香港 HK Hong Kong 日本 JP 等地区名称与代码 去掉后重名会自动加序号
 rename = input,"",tag=正则重命名,desc=格式 匹配 -> 替换 多条用英文分号分隔 匹配部分是正则 替换支持 $1 $2 例 (香港|日本)\s*(\d+) -> $2-$1 ; IPLC -> 专线
@@ -25,7 +28,7 @@ timeout = input,"8000",tag=拉取超时(ms),desc=Sub-Store 参数 拉取订阅�
 noCache = switch,false,tag=禁用缓存,desc=Sub-Store 参数 拉取订阅时不使用缓存
 ageSecretKey = input,"",tag=age 解密私钥,desc=Sub-Store 参数 订阅经 age 加密时填写私钥 AGE-SECRET-KEY-...
 configUrl = input,"",tag=远程配置 URL,desc=可选 指向一个 JSON 文件（如私有 Gist 的 raw 链接）其中的设置覆盖本页 用于多设备同步 拉取失败时用上次缓存
-debug = switch,false,tag=调试日志,desc=在日志中输出生效配置与可用变量
+debug = switch,false,tag=调试日志,desc=在日志中输出订阅名称与生效配置
 
 [Script]
-generic then script("https://raw.githubusercontent.com/vimcaw/network-configuration/main/Loon/Scripts/ProviderParser.js", {${aliasPrefix}, ${aliasSuffix}, ${aliasSep}, ${noFlag}, ${noRegion}, ${rename}, ${exclude}, ${sort}, ${sortKeys}, ${resourceUrlOnly}, ${ua}, ${timeout}, ${noCache}, ${ageSecretKey}, ${configUrl}, ${debug}}) with tag="Provider Parser", img_url="https://raw.githubusercontent.com/Loon0x00/Loon0x00.github.io/main/static/img/loon.png", timeout=300
+generic then script("https://raw.githubusercontent.com/vimcaw/network-configuration/main/Loon/Scripts/ProviderParser.js", {${name}, ${aliasPrefix}, ${aliasSuffix}, ${aliasSep}, ${prefix}, ${suffix}, ${noFlag}, ${noRegion}, ${rename}, ${exclude}, ${sort}, ${sortKeys}, ${resourceUrlOnly}, ${ua}, ${timeout}, ${noCache}, ${ageSecretKey}, ${configUrl}, ${debug}}) with tag="Provider Parser", img_url="https://raw.githubusercontent.com/Loon0x00/Loon0x00.github.io/main/static/img/loon.png", timeout=300

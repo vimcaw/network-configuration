@@ -67,11 +67,10 @@ test("排除 + 去旗帜 + 去地区 + 地区排序", async () => {
   assert.deepStrictEqual(names(r.out), ["IPLC 01", "02 x2", "01", "东京 01", "01 2", "Los Angeles 0.5x"]);
 }, "src");
 
-test("正则多重替换 $1 $2 + 别名前缀 + 名称排序", async () => {
+test("正则多重替换 $1 $2 + 订阅名称前缀 + 名称排序", async () => {
   const r = await run({
     resource: loonLines,
-    argument: { noFlag: true, rename: "(香港|日本)\\s*(\\d+) -> $2-$1 ; /iplc/i -> 专线", aliasPrefix: true, aliasSep: "·", exclude: "流量,官网", sort: "名称升序" },
-    url: "https://sub.example.com/api#name=机场A",
+    argument: { name: "机场A", noFlag: true, rename: "(香港|日本)\\s*(\\d+) -> $2-$1 ; /iplc/i -> 专线", aliasPrefix: true, aliasSep: "·", exclude: "流量,官网", sort: "名称升序" },
   });
   assert.ok(names(r.out).every((n) => n.startsWith("机场A·")), names(r.out).join("|"));
   assert.ok(names(r.out).includes("机场A·香港 专线 01"), names(r.out).join("|"));
@@ -86,18 +85,10 @@ test("倍率降序 + 关键字排序", async () => {
   assert.deepStrictEqual(names(r.out).slice(0, 2), ["🇸🇬 Singapore 01", "🇯🇵 日本 东京 01"]);
 }, "src");
 
-test("订阅字符串参数覆盖全局，全局从缓存补齐", async () => {
-  const store = {};
-  await run({ resource: loonLines, argument: { noFlag: true, aliasPrefix: true }, store });
-  const r = await run({ resource: loonLines, argument: "prefix=%5BA%5D%20&exclude=香港", store });
+test("自定义前后缀优先于订阅名称开关", async () => {
+  const r = await run({ resource: loonLines, argument: { name: "机场A", aliasPrefix: true, aliasSuffix: true, prefix: "[A] ", suffix: "", exclude: "流量,官网" } });
   const ns = names(r.out);
-  assert.ok(ns.every((n) => n.startsWith("[A] ") && !/🇯🇵/.test(n)), ns.join("|"));
-  assert.ok(!ns.some((n) => n.includes("香港")));
-}, "src");
-
-test("URL 片段单独配置，且从 URL 去掉", async () => {
-  const r = await run({ resource: loonLines, argument: { noFlag: false }, url: "https://sub.example.com/x?t=1#noFlag&suffix=%20%E2%9C%88", globals: {} });
-  assert.ok(names(r.out).every((n) => n.endsWith(" ✈") && !/🇭🇰/.test(n)), names(r.out).join("|"));
+  assert.ok(ns.every((n) => n.startsWith("[A] ") && n.endsWith(" 机场A")), ns.join("|"));
 }, "src");
 
 test("远程配置：global + 按 URL 关键字匹配", async () => {
@@ -131,10 +122,10 @@ test("Sub-Store 引擎解析 Base64 URI 订阅后再处理", async () => {
   assert.ok(/= shadowsocks,1\.2\.3\.4,8388/i.test(r.out), r.out);
 }, "dist");
 
-test("resourceUrlOnly：引擎按去掉片段的 URL 拉取", async () => {
+test("resourceUrlOnly：引擎按订阅 URL 拉取，再加订阅名称后缀", async () => {
   const subUrl = "https://sub.example.com/api?token=abc";
   const body = Buffer.from("trojan://pwd@5.6.7.8:443?sni=a.com#" + encodeURIComponent("🇯🇵 日本 02")).toString("base64");
-  const r = await run({ resource: "", url: subUrl + "#name=机场B&noFlag", http: { [subUrl]: body }, argument: { resourceUrlOnly: true, aliasSuffix: true, ua: "clash.meta", timeout: "8000" } });
+  const r = await run({ resource: "", url: subUrl, http: { [subUrl]: body }, argument: { name: "机场B", noFlag: true, resourceUrlOnly: true, aliasSuffix: true, ua: "clash.meta", timeout: "8000" } });
   assert.deepStrictEqual(names(r.out), ["日本 02 机场B"], r.out + "\n" + r.logs.join("\n"));
 }, "dist");
 

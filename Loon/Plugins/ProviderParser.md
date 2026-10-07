@@ -28,14 +28,14 @@ Loon 订阅（远程节点）解析器插件。Sub-Store 引擎负责拉取、�
 
 ## 参数
 
-插件页面上的参数是全局配置，作用于所有使用本解析器的订阅。
+插件页面上的参数是全局默认值；每个订阅还可以在自己的插件参数里单独修改（见下方“单个订阅的单独配置”）。
 
 | 参数 | 说明 |
 | --- | --- |
-| `aliasPrefix` / `aliasSuffix` | 开关：把订阅别名加到节点名前/后 |
-| `aliasSep` | 别名与节点名之间的分隔符，默认空格 |
-| `prefix` / `suffix` | 自定义前/后缀文本（单独配置用，优先于别名开关；写 `prefix=` 表示该订阅不加前缀） |
-| `name` | 该订阅的别名（见下方“订阅别名”） |
+| `name` | 订阅名称，如 `机场 A`，供下面两个开关使用 |
+| `aliasPrefix` / `aliasSuffix` | 开关：把订阅名称加到节点名前/后 |
+| `aliasSep` | 订阅名称与节点名之间的分隔符，默认空格 |
+| `prefix` / `suffix` | 自定义前/后缀文本，原样拼接；填写后优先于对应的开关 |
 | `noFlag` | 去掉国旗 Emoji |
 | `noRegion` | 去掉地区名（中文、英文、`HK`/`HKG` 等大写代码；代码前后必须不是字母，`PLUS` 里的 `US` 不会被误删） |
 | `rename` | 正则重命名，见下文 |
@@ -44,7 +44,7 @@ Loon 订阅（远程节点）解析器插件。Sub-Store 引擎负责拉取、�
 | `sortKeys` | 排序方式为“关键字”时的顺序，英文逗号分隔，支持 `/正则/` |
 | `resourceUrlOnly` `ua` `timeout` `noCache` `ageSecretKey`（也接受 `age-secret-key`） | 原样交给 Sub-Store 引擎，含义同 Sub-Store 官方解析器 |
 | `configUrl` | 远程配置 JSON 的地址 |
-| `debug` | 在日志里打印生效配置和可用的全局变量 |
+| `debug` | 在日志里打印订阅名称和生效配置 |
 
 ### 正则重命名
 
@@ -59,26 +59,16 @@ Loon 订阅（远程节点）解析器插件。Sub-Store 引擎负责拉取、�
 
 ## 单个订阅的单独配置
 
-单独配置的优先级高于全局。使用 Loon 订阅行的 `argument` 参数，格式是 `k=v&k=v`（Sub-Store 的约定），值里的 `&` 写成 `%26`：
+在订阅设置里选择本解析器后，Loon 会为每个订阅单独保存一份插件参数（按订阅 URL 区分）。在该订阅的插件参数里修改的值只作用于这个订阅，没改过的订阅用插件页面的全局值。
 
-```ini
-[Remote Proxy]
-机场A = https://example.com/sub?token=xxx,parser-enabled=true,parser-plugin=Provider Parser,argument="name=机场A&prefix=A·&exclude=到期,剩余流量&sort=倍率升序"
-```
+### 订阅名称
 
-也可以写在订阅地址的 `#` 片段里（片段不会发给服务器，解析器会在拉取前去掉它）：
+Loon 不会把订阅（`[Remote Proxy]` 里等号左边的名称，如 `机场 A`）传给解析器：解析器脚本只能拿到 `$resource` `$resourceType` `$resourceUrl` `$argument` `$script`（其中 `name` 是解析器自己的标签）`$environment` `$loon`。所以要用名称做前后缀，需要：
 
-```
-https://example.com/sub?token=xxx#prefix=A·&noFlag
-```
+1. 在该订阅的插件参数里填写“订阅名称”，如 `机场 A`；
+2. 打开“名称作为前缀”或“名称作为后缀”（可以在全局打开，对所有订阅生效）。
 
-布尔开关只写键名即为开启，如 `#noFlag`。
-
-> Loon 的文档没有说明订阅 `argument` 与插件参数如何合并。如果 Loon 用订阅的 argument 整体替换插件参数，脚本会用上一次运行时缓存的插件参数补齐全局配置，所以修改全局参数后，最好先刷新一个没有单独配置的订阅。
-
-### 订阅别名
-
-Loon 目前没有公开文档说明解析器能拿到订阅名称。脚本会尝试读取几个可能的变量；拿不到时，请在该订阅的单独配置里写 `name=别名`。打开 `debug` 后日志会列出 Loon 实际提供的全部 `$` 变量。
+开关打开但没有填写名称时，节点名不变，日志里会提示。
 
 ## 远程配置与多设备同步
 
@@ -94,8 +84,8 @@ Loon 目前没有公开文档说明解析器能拿到订阅名称。脚本会尝
 }
 ```
 
-- `subscriptions` 的键匹配订阅别名（不区分大小写），或订阅 URL 中包含的文本。
-- 完整优先级：插件参数 < 远程 `global` < 远程 `subscriptions` 匹配项 < 订阅 `argument` < 订阅 URL `#` 片段。
+- `subscriptions` 的键匹配订阅名称 `name`（不区分大小写），或订阅 URL 中包含的文本；匹配项里也可以设置 `name`。
+- 完整优先级：插件参数（全局或该订阅的） < 远程 `global` < 远程 `subscriptions` 匹配项。
 - 拉取失败时使用上次成功的缓存。
 
 ## 许可
