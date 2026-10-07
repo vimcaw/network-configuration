@@ -1,0 +1,26 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Editors / IDEs
+.vscode/
+.idea/
+*.swp
+*~
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Local secrets / private configs (never commit real subscription links or keys)
+*.local.*
+.env
+.env.*
+config.json
+!config.example.json
+
+# Logs / temp
+*.log
+tmp/

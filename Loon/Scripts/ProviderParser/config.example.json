@@ -1,0 +1,18 @@
+{
+  "global": {
+    "noFlag": true,
+    "noRegion": false,
+    "exclude": "到期,剩余流量,/官网|套餐/",
+    "sort": "地区"
+  },
+  "subscriptions": {
+    "机场A": {
+      "prefix": "A·",
+      "rename": "IPLC -> 专线"
+    },
+    "sub.example.com": {
+      "exclude": "到期,剩余流量,/倍率\\s*[5-9]/",
+      "ua": "clash.meta"
+    }
+  }
+}

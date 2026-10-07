@@ -1,0 +1,31 @@
+#!name=Provider Parser
+#!desc=订阅（远程节点）解析器：基于 Sub-Store 引擎拉取与转换订阅 再统一做排除 正则重命名 去旗帜 去地区 前后缀 排序 去重。全局参数在这里设置 单个订阅可在订阅的 argument 里覆盖。请在订阅管理界面选择本解析器。
+#!author=Vimcaw
+#!homepage=https://github.com/vimcaw/network-configuration
+#!tag=解析器,节点,订阅,Sub-Store
+#!system=
+#!system_version=
+#!loon_version=3.5.1(998)
+#!icon=https://raw.githubusercontent.com/Loon0x00/Loon0x00.github.io/main/static/img/loon.png
+#!type=parser
+
+[Argument]
+aliasPrefix = switch,false,tag=别名作为前缀,desc=把订阅别名加到节点名前面 单个订阅可用 prefix=自定义文本 覆盖
+aliasSuffix = switch,false,tag=别名作为后缀,desc=把订阅别名加到节点名后面 单个订阅可用 suffix=自定义文本 覆盖
+aliasSep = input," ",tag=别名分隔符,desc=别名与节点名之间的分隔符 默认一个空格
+noFlag = switch,false,tag=去除旗帜 Emoji,desc=去掉节点名中的国旗 Emoji
+noRegion = switch,false,tag=去除地区名,desc=去掉 香港 HK Hong Kong 日本 JP 等地区名称与代码 去掉后重名会自动加序号
+rename = input,"",tag=正则重命名,desc=格式 匹配 -> 替换 多条用英文分号分隔 匹配部分是正则 替换支持 $1 $2 例 (香港|日本)\s*(\d+) -> $2-$1 ; IPLC -> 专线
+exclude = input,"",tag=排除节点,desc=名称包含任一关键字即排除 英文逗号分隔 不区分大小写 用 /正则/ 写正则 例 到期,剩余流量,/官网|套餐/
+sort = select,"不排序","地区","关键字","名称升序","名称降序","倍率升序","倍率降序",tag=排序方式,desc=地区按 港澳台日韩新美等顺序 关键字按下方关键字顺序 倍率识别 2x x2 0.5倍 等 同组内保持原顺序
+sortKeys = input,"",tag=排序关键字,desc=排序方式为 关键字 时生效 英文逗号分隔 支持 /正则/ 未匹配的排在最后
+resourceUrlOnly = switch,true,tag=仅使用远程资源,desc=Sub-Store 参数 忽略 Loon 自身下载的内容 由解析器按订阅地址重新拉取
+ua = input,"",tag=User-Agent,desc=Sub-Store 参数 拉取订阅时使用的 UA 留空用 Sub-Store 默认值
+timeout = input,"8000",tag=拉取超时(ms),desc=Sub-Store 参数 拉取订阅的超时时间 单位毫秒
+noCache = switch,false,tag=禁用缓存,desc=Sub-Store 参数 拉取订阅时不使用缓存
+ageSecretKey = input,"",tag=age 解密私钥,desc=Sub-Store 参数 订阅经 age 加密时填写私钥 AGE-SECRET-KEY-...
+configUrl = input,"",tag=远程配置 URL,desc=可选 指向一个 JSON 文件（如私有 Gist 的 raw 链接）其中的设置覆盖本页 用于多设备同步 拉取失败时用上次缓存
+debug = switch,false,tag=调试日志,desc=在日志中输出生效配置与可用变量
+
+[Script]
+generic then script("https://raw.githubusercontent.com/vimcaw/network-configuration/main/Loon/Scripts/ProviderParser.js", {${aliasPrefix}, ${aliasSuffix}, ${aliasSep}, ${noFlag}, ${noRegion}, ${rename}, ${exclude}, ${sort}, ${sortKeys}, ${resourceUrlOnly}, ${ua}, ${timeout}, ${noCache}, ${ageSecretKey}, ${configUrl}, ${debug}}) with tag="Provider Parser", img_url="https://raw.githubusercontent.com/Loon0x00/Loon0x00.github.io/main/static/img/loon.png", timeout=300
